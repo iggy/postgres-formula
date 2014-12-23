@@ -83,6 +83,20 @@ postgres-user-{{ name }}:
 {% endfor%}
 {% endif %}
 
+{% if 'tablespaces' in pillar.get('postgres', {}) %}
+  {% for name, path in salt['pillar.get']('postgres:tablespaces').items() %}
+{{ path }}:
+  file.directory:
+    - user: {{ postgres.user }}
+
+postgres-tablespace-{{ name }}:
+  cmd.run:
+    - name: psql -c "CREATE TABLESPACE {{ name }} LOCATION '{{ path }}';"
+    - user: {{ postgres.user }}
+
+  {% endfor %}
+{% endif %}
+
 {% if 'databases' in pillar.get('postgres', {}) %}
 {% for name, db in salt['pillar.get']('postgres:databases').items()  %}
 postgres-db-{{ name }}:
@@ -92,10 +106,13 @@ postgres-db-{{ name }}:
     - lc_ctype: {{ salt['pillar.get']('postgres:databases:'+ name +':lc_ctype', 'en_US.UTF8') }}
     - lc_collate: {{ salt['pillar.get']('postgres:databases:'+ name +':lc_collate', 'en_US.UTF8') }}
     - template: {{ salt['pillar.get']('postgres:databases:'+ name +':template', 'template0') }}
+    {% if salt['pillar.get']('postgres:databases:'+ name +':tablespace') %}
+    - tablespace: {{ salt['pillar.get']('postgres:databases:'+ name +':tablespace') }}
+    {% endif %}
     {% if salt['pillar.get']('postgres:databases:'+ name +':owner') %}
     - owner: {{ salt['pillar.get']('postgres:databases:'+ name +':owner') }}
     {% endif %}
-    - runas: {{ salt['pillar.get']('postgres:databases:'+ name +':runas', 'postgres') }}
+    - runas: {{ salt['pillar.get']('postgres:databases:'+ name +':runas', postgres.user) }}
     {% if salt['pillar.get']('postgres:databases:'+ name +':user') %}
     - require:
         - postgres_user: postgres-user-{{ salt['pillar.get']('postgres:databases:'+ name +':user') }}
