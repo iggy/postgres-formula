@@ -53,3 +53,15 @@ Builds and runs test from scratch
 
 Gives you ssh to the vagrant machine for manual testing
 
+Changelog
+=========
+
+.. contents::
+    :local:
+
+``20150601``
+------------
+
+Remove pillar settings to install dev packages. Target postgres.dev at the
+minion in the top file to install dev packages.
+
